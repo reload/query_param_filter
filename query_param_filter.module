@@ -1,0 +1,47 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function query_param_filter_menu() {
+	$items = array();
+  
+	$items['admin/settings/query_param_filter'] = array(
+		'title' => t('Query parameter filter'),
+		'description' => t('Chose which paths should be protected'),
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array('query_param_filter_admin_settings'),
+		'access arguments' => array('administer site configuration'),
+		'file' => 'query_param_filter.admin.inc',
+	);
+
+  return $items;
+}
+
+/**
+ * Implements hook_boot()
+ */
+function query_param_filter_boot() {
+	if ($paths = variable_get('query_param_filter_paths', FALSE)) {
+		//Check system paths and aliases for matches
+	    $system_path = $_GET['q'];
+	    $path_alias = drupal_get_path_alias($system_path);
+		
+		foreach (explode("\n", $paths) as $filter_path) {
+			if ($filter_path = trim($filter_path)) {
+				// If we have more than one query parameter (q) 
+				// check if the path is protected
+				if (sizeof($_GET) > 1) {
+					if ( drupal_match_path($system_path, $filter_path) ||
+					     drupal_match_path($path_alias, $filter_path)) {
+					  //Path is protected and unwanted request paramterers detected so
+					  //redirect to the alias
+					  //Note: We can always redirect to the alias value as this
+					  //will be system path if the system path has no alias
+					  drupal_goto($path_alias, NULL, NULL, 301);  	
+					}
+				}
+			}
+		}
+	}
+}

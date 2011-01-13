@@ -1,0 +1,4 @@
+name = Query Parameter Filter
+description = Protect paths from being called with unused parameters diluting SEO
+package = Other
+core = 6.x
